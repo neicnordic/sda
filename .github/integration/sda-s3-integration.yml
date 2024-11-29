@@ -347,6 +347,61 @@ services:
       - ./sda/config.yaml:/config.yaml
       - shared:/shared
 
+  auth-aai:
+    command: [ sda-auth ]
+    container_name: auth-aai
+    depends_on:
+      credentials:
+        condition: service_completed_successfully
+      mock-aai:
+        condition: service_started
+    environment:
+      - AUTH_RESIGNJWT=false
+      - OIDC_ID=XC56EL11xx
+      - OIDC_JWKPATH=jwk
+      - OIDC_PROVIDER=http://localhost:8800/oidc/
+      - OIDC_REDIRECTURL=http://localhost:8801/oidc/login
+      - OIDC_SECRET=wHPVQaYXmdDHg
+    extra_hosts:
+      - "localhost:host-gateway"
+    image: ghcr.io/neicnordic/sensitive-data-archive:PR${PR_NUMBER}
+    ports:
+      - "8801:8080"
+    restart: always
+    volumes:
+      - ./sda/config.yaml:/config.yaml
+      - shared:/shared
+  mock-aai:
+    container_name: ls-aai-mock
+    depends_on:
+      aai-db:
+        condition: service_healthy
+    environment:
+      - DOCKERHOST=localhost
+    extra_hosts:
+      - "localhost:host-gateway"
+    image: registry.gitlab.ics.muni.cz:443/perun/deployment/proxyidp/proxyidp-public-docker-images/ls_aai_mock:2.5.2-broker2.1.10-tomcat9.0-jdk11
+    ports:
+      - "8800:8080"
+    volumes:
+      - "./sda/aai-mock:/etc/lsaai-mock"
+  aai-db:
+    container_name: ls-aai-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 'aaiPass'
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_DATABASE: 'aai'
+      MYSQL_USER: 'aai'
+      MYSQL_PASSWORD: 'aaiPass'
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 2s
+      retries: 6
+    image: mysql/mysql-server:latest
+    volumes:
+      - ./sda/aai-mock/aai-mock.sql:/docker-entrypoint-initdb.d/1.sql
+
   integration_test:
     container_name: tester
     command:

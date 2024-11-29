@@ -1,0 +1,33 @@
+web-display-name: "John Franklin Doe"
+
+sub: "jd123@lifescience-ri.eu"
+
+name: "John Franklin Doe"
+preferred-username: "jofrdo"
+given-name: "John"
+family-name: "Doe"
+middle-name: "Franklin"
+nickname: "jofrdo"
+locale: "EN"
+
+email: "j.f.doe@faberuni.edu"
+email-verified: True
+
+country: "uk"
+
+eduperson-entitlement: ["urn:geant:lifescience-ri.eu:group:researchers#lifescience-ri.eu"]
+
+voperson-external-affiliation: ["unknown@orcid.org", "affiliate@faberuni.edu", "faculty@faberuni.edu"]
+
+eduperson-orcid: "https://orcid.org/0000-0000-XXXX-XXXX"
+
+schac-home-organization: ["faberuni.edu", "orcid.org"]
+
+eduperson-scoped-affiliation: ["affiliate@lifescience-ri.eu", "member@lifescience-ri.eu"]
+
+voperson-current-external-affiliation: ["affiliate@faberuni.edu", "faculty@faberuni.edu"]
+
+authenticating-entity: "https://idp.faberuni.edu/shibboleth"
+
+acr: "https://refeds.org/profile/mfa"
+authn-instant: "2023-05-01T10:15:30Z"
