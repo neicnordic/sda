@@ -170,7 +170,8 @@ k3d-version-check:
 		echo "kubectl is missing";\
 	fi
 k3d-create-cluster:
-	@k3d cluster create
+	@k3d cluster create --k3s-arg "--disable=traefik@server:0" --port "80:80@loadbalancer" --port "443:443@loadbalancer"; \
+	helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --namespace ingress-nginx --create-namespace
 k3d-delete-cluster:
 	@k3d cluster delete
 k3d-deploy-dependencies:
