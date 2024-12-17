@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
@@ -420,4 +421,12 @@ func TLScertToFile(filename string, derBytes []byte) error {
 	err = pem.Encode(certFile, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 
 	return err
+}
+
+func AnonymizeFilepath(filepath string, username string) string {
+	return strings.ReplaceAll(filepath, strings.Replace(username, "@", "_", 1)+"/", "")
+}
+
+func UnanonymizeFilepath(filepath string, username string) string {
+	return strings.Replace(username, "@", "_", 1) + "/" + filepath
 }

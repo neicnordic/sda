@@ -7,7 +7,7 @@ ENC_SHA=$(sha256sum NA12878.bam.c4gh | cut -d' ' -f 1)
 ENC_MD5=$(md5sum NA12878.bam.c4gh | cut -d' ' -f 1)
 
 ## get correlation id from message
-CORRID=$(psql -U postgres -h postgres -d sda -At -c "select id from sda.files where submission_file_path = 'test_dummy.org/NA12878.bam.c4gh';")
+CORRID=$(psql -U postgres -h postgres -d sda -At -c "select id from sda.files where submission_file_path = 'NA12878.bam.c4gh';")
 
 
 properties=$(
@@ -30,7 +30,7 @@ cancel_payload=$(
     jq -r -c -n \
         --arg type cancel \
         --arg user test@dummy.org \
-        --arg filepath test_dummy.org/NA12878.bam.c4gh \
+        --arg filepath NA12878.bam.c4gh \
         --argjson encrypted_checksums "$encrypted_checksums" \
         '$ARGS.named|@base64'
 )
@@ -67,7 +67,7 @@ ingest_payload=$(
     jq -r -c -n \
         --arg type ingest \
         --arg user test@dummy.org \
-        --arg filepath test_dummy.org/NA12878.bam.c4gh \
+        --arg filepath NA12878.bam.c4gh \
         --argjson encrypted_checksums "$encrypted_checksums" \
         '$ARGS.named|@base64'
 )
@@ -110,7 +110,7 @@ accession_payload=$(
     jq -r -c -n \
         --arg type accession \
         --arg user test@dummy.org \
-        --arg filepath test_dummy.org/NA12878.bam.c4gh \
+        --arg filepath NA12878.bam.c4gh \
         --arg accession_id EGAF74900000001 \
         --argjson decrypted_checksums "$decrypted_checksums" \
         '$ARGS.named|@base64'

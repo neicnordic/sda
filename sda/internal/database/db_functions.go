@@ -553,6 +553,39 @@ func (dbs *SDAdb) GetHeaderForStableID(stableID string) ([]byte, error) {
 	return header, nil
 }
 
+// GetFileInfoFromAccessionID retrieves the file information needed for mapping
+func (dbs *SDAdb) GetFileInfoFromAccessionID(accessionID string) (SyncData, error) {
+	var (
+		s   SyncData
+		err error
+	)
+
+	for count := 1; count <= RetryTimes; count++ {
+		s, err = dbs.getFileInfoFromAccessionID(accessionID)
+		if err == nil {
+			break
+		}
+		time.Sleep(time.Duration(math.Pow(3, float64(count))) * time.Second)
+	}
+
+	return s, err
+}
+
+// getFileInfoFromAccessionID is the actual function performing work for GetFileInfoFromAccessionID
+func (dbs *SDAdb) getFileInfoFromAccessionID(accessionID string) (SyncData, error) {
+	dbs.checkAndReconnectIfNeeded()
+
+	const query = "SELECT submission_user, submission_file_path from sda.files WHERE stable_id = $1;"
+	var data SyncData
+	if err := dbs.DB.QueryRow(query, accessionID).Scan(&data.User, &data.FilePath); err != nil {
+		log.Warnf("Error while searching for id %s: %v", accessionID, err)
+
+		return SyncData{}, err
+	}
+
+	return data, nil
+}
+
 // GetSyncData retrieves the file information needed to sync a dataset
 func (dbs *SDAdb) GetSyncData(accessionID string) (SyncData, error) {
 	var (

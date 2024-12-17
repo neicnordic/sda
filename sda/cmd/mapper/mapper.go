@@ -9,6 +9,7 @@ import (
 	"github.com/neicnordic/sensitive-data-archive/internal/broker"
 	"github.com/neicnordic/sensitive-data-archive/internal/config"
 	"github.com/neicnordic/sensitive-data-archive/internal/database"
+	"github.com/neicnordic/sensitive-data-archive/internal/helper"
 	"github.com/neicnordic/sensitive-data-archive/internal/schema"
 	"github.com/neicnordic/sensitive-data-archive/internal/storage"
 
@@ -103,13 +104,14 @@ func main() {
 
 				for _, aID := range mappings.AccessionIDs {
 					log.Debugf("Mapped file to dataset (corr-id: %s, datasetid: %s, accessionid: %s)", delivered.CorrelationId, mappings.DatasetID, aID)
-					filePath, err := db.GetInboxPath(aID)
+					fileInfo, err := db.GetFileInfoFromAccessionID(aID)
 					if err != nil {
-						log.Errorf("failed to get inbox path for file with stable ID: %s", aID)
+						log.Errorf("failed to get file info for file with stable ID: %s", aID)
 					}
-					err = inbox.RemoveFile(filePath)
+
+					err = inbox.RemoveFile(helper.UnanonymizeFilepath(fileInfo.FilePath, fileInfo.User))
 					if err != nil {
-						log.Errorf("Remove file from inbox failed, reason: %v", err)
+						log.Errorf("Remove file from inbox %s failed, reason: %v", fileInfo.FilePath, err)
 					}
 				}
 

@@ -45,7 +45,7 @@ bad_file_payload=$(
     jq -r -c -n \
         --arg type ingest \
         --arg user test@dummy.org \
-        --arg filepath test_dummy.org/bad.file.c4gh \
+        --arg filepath bad.file.c4gh \
         --argjson encrypted_checksums "$encrypted_checksums" \
         '$ARGS.named|@base64'
 )
@@ -77,7 +77,7 @@ missing_file_payload=$(
     jq -r -c -n \
         --arg type ingest \
         --arg user test@dummy.org \
-        --arg filepath test_dummy.org/missing.file.c4gh \
+        --arg filepath missing.file.c4gh \
         --argjson encrypted_checksums "$encrypted_checksums" \
         '$ARGS.named|@base64'
 )
@@ -125,7 +125,7 @@ truncated_file_payload=$(
     jq -r -c -n \
         --arg type ingest \
         --arg user test@dummy.org \
-        --arg filepath test_dummy.org/truncated.c4gh \
+        --arg filepath truncated.c4gh \
         --argjson encrypted_checksums "$encrypted_checksums" \
         '$ARGS.named|@base64'
 )

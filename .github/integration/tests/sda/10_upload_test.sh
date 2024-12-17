@@ -20,8 +20,6 @@ done
 ## truncate database
 psql -U postgres -h postgres -d sda -At -c "TRUNCATE TABLE sda.files, sda.encryption_keys CASCADE;"
 
-pip -q install s3cmd
-
 for file in NA12878.bam NA12878_20k_b37.bam NA12878.bai NA12878_20k_b37.bai; do
     curl --retry 100 -s -L -o /shared/$file "https://github.com/ga4gh/htsget-refserver/raw/main/data/gcp/gatk-test-data/wgs_bam/$file"
     if [ ! -f "$file.c4gh" ]; then

@@ -21,6 +21,7 @@ import (
 	"github.com/neicnordic/sensitive-data-archive/internal/broker"
 	"github.com/neicnordic/sensitive-data-archive/internal/config"
 	"github.com/neicnordic/sensitive-data-archive/internal/database"
+	"github.com/neicnordic/sensitive-data-archive/internal/helper"
 	"github.com/neicnordic/sensitive-data-archive/internal/schema"
 	"github.com/neicnordic/sensitive-data-archive/internal/storage"
 
@@ -259,7 +260,7 @@ func main() {
 					}
 				}
 
-				file, err := inbox.NewFileReader(message.FilePath)
+				file, err := inbox.NewFileReader(helper.UnanonymizeFilepath(message.FilePath, message.User))
 				if err != nil { //nolint:nestif
 					log.Errorf("Failed to open file to ingest reason: (%s)", err.Error())
 					if strings.Contains(err.Error(), "no such file or directory") || strings.Contains(err.Error(), "NoSuchKey:") {
@@ -292,7 +293,7 @@ func main() {
 					continue
 				}
 
-				fileSize, err := inbox.GetFileSize(message.FilePath)
+				fileSize, err := inbox.GetFileSize(helper.UnanonymizeFilepath(message.FilePath, message.User))
 				if err != nil {
 					log.Errorf("Failed to get file size of file to ingest, reason: (%s)", err.Error())
 					// Nack message so the server gets notified that something is wrong and requeue the message.

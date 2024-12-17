@@ -13,3 +13,5 @@ for t in curl expect jq openssh-client postgresql-client xxd; do
         apt-get -o DPkg::Lock::Timeout=60 install -y "$t" >/dev/null
     fi
 done
+
+pip -q install s3cmd

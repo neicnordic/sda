@@ -14,7 +14,7 @@ ENC_SHA=$(sha256sum race_file.c4gh | cut -d' ' -f 1)
 ENC_MD5=$(md5sum race_file.c4gh | cut -d' ' -f 1)
 
 ## get correlation id from message
-CORRID=$(psql -U postgres -h postgres -d sda -At -c "select id from sda.files where submission_file_path = 'test_dummy.org/race_file.c4gh';")
+CORRID=$(psql -U postgres -h postgres -d sda -At -c "select id from sda.files where submission_file_path = 'race_file.c4gh';")
 
 properties=$(
     jq -c -n \
@@ -36,7 +36,7 @@ accession_payload=$(
     jq -r -c -n \
         --arg type accession \
         --arg user test@dummy.org \
-        --arg filepath test_dummy.org/race_file.c4gh \
+        --arg filepath race_file.c4gh \
         --arg accession_id EGAF74900000099 \
         --argjson decrypted_checksums "$decrypted_checksums" \
         '$ARGS.named|@base64'
@@ -74,7 +74,7 @@ ingest_payload=$(
     jq -r -c -n \
         --arg type ingest \
         --arg user test@dummy.org \
-        --arg filepath test_dummy.org/race_file.c4gh \
+        --arg filepath race_file.c4gh \
         --argjson encrypted_checksums "$encrypted_checksums" \
         '$ARGS.named|@base64'
 )

@@ -29,7 +29,7 @@ if [ -n "$PGSSLCERT" ]; then
 fi
 
 ## get correlation id from message
-CORRID=$(psql -U postgres -h postgres -d sda -At -c "select id from sda.files where submission_file_path = 'test_dummy.org/NB12878.bam.c4gh';")
+CORRID=$(psql -U postgres -h postgres -d sda -At -c "select id from sda.files where submission_file_path = 'NB12878.bam.c4gh';")
 
 properties=$(
     jq -c -n \
@@ -50,7 +50,7 @@ ingest_payload=$(
     jq -r -c -n \
         --arg type ingest \
         --arg user test@dummy.org \
-        --arg filepath test_dummy.org/NB12878.bam.c4gh \
+        --arg filepath NB12878.bam.c4gh \
         --argjson encrypted_checksums "$encrypted_checksums" \
         '$ARGS.named|@base64'
 )
@@ -96,7 +96,7 @@ verify_payload=$(
         --arg user test@dummy.com \
         --arg archive_path "$CORRID" \
         --arg file_id "$CORRID" \
-        --arg filepath test_dummy.org/NB12878.bam.c4gh \
+        --arg filepath NB12878.bam.c4gh \
         --argjson encrypted_checksums "$encrypted_checksums" \
         --argjson re_verify false \
         '$ARGS.named|@base64'

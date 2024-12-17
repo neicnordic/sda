@@ -94,7 +94,7 @@ EOD
 
 # check DB for archive file names
 for file in NA12878.bam.c4gh NA12878.bai.c4gh NA12878_20k_b37.bam.c4gh NA12878_20k_b37.bai.c4gh; do
-    archiveName=$(psql -U postgres -h postgres -d sda -At -c "SELECT archive_file_path from sda.files where submission_file_path = 'test_dummy.org/$file';")
+    archiveName=$(psql -U postgres -h postgres -d sda -At -c "SELECT archive_file_path from sda.files where submission_file_path = '$file';")
     size=$(s3cmd -c direct ls s3://backup/"$archiveName" | tr -s ' ' | cut -d ' ' -f 3)
     if [ "$size" -eq 0 ]; then
         echo "Failed to get size of $file from backup site"

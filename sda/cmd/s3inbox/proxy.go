@@ -21,6 +21,7 @@ import (
 	"github.com/minio/minio-go/v6/pkg/signer"
 	"github.com/neicnordic/sensitive-data-archive/internal/broker"
 	"github.com/neicnordic/sensitive-data-archive/internal/database"
+	"github.com/neicnordic/sensitive-data-archive/internal/helper"
 	"github.com/neicnordic/sensitive-data-archive/internal/storage"
 	"github.com/neicnordic/sensitive-data-archive/internal/userauth"
 	log "github.com/sirupsen/logrus"
@@ -148,8 +149,9 @@ func (p *Proxy) allowedResponse(w http.ResponseWriter, r *http.Request, token jw
 
 	username := token.Subject()
 	rawFilepath := strings.Replace(r.URL.Path, "/"+p.s3.Bucket+"/", "", 1)
+	anonymizedFilepath := helper.AnonymizeFilepath(rawFilepath, username)
 
-	filepath, err := formatUploadFilePath(rawFilepath)
+	filepath, err := formatUploadFilePath(anonymizedFilepath)
 	if err != nil {
 		reportError(http.StatusNotAcceptable, err.Error(), w)
 
@@ -179,7 +181,7 @@ func (p *Proxy) allowedResponse(w http.ResponseWriter, r *http.Request, token jw
 	// Send message to upstream and set file as uploaded in the database
 	if p.uploadFinishedSuccessfully(r, s3response) {
 		log.Debug("create message")
-		message, err := p.CreateMessageFromRequest(r, token)
+		message, err := p.CreateMessageFromRequest(r, token, anonymizedFilepath)
 		if err != nil {
 			p.internalServerError(w, r, err.Error())
 
@@ -262,6 +264,7 @@ func (p *Proxy) checkAndSendMessage(jsonMessage []byte, r *http.Request) error {
 		}
 	}
 
+	log.Debugf("Sending message with id %s", p.fileIds[r.URL.Path])
 	if err := p.messenger.SendMessage(p.fileIds[r.URL.Path], p.messenger.Conf.Exchange, p.messenger.Conf.RoutingKey, jsonMessage); err != nil {
 		return fmt.Errorf("error when sending message to broker: %v", err)
 	}
@@ -449,7 +452,7 @@ func (p *Proxy) detectRequestType(r *http.Request) S3RequestType {
 
 // CreateMessageFromRequest is a function that can take a http request and
 // figure out the correct rabbitmq message to send from it.
-func (p *Proxy) CreateMessageFromRequest(r *http.Request, claims jwt.Token) (Event, error) {
+func (p *Proxy) CreateMessageFromRequest(r *http.Request, claims jwt.Token, user string) (Event, error) {
 	event := Event{}
 	checksum := Checksum{}
 	var err error
@@ -461,7 +464,9 @@ func (p *Proxy) CreateMessageFromRequest(r *http.Request, claims jwt.Token) (Eve
 
 	// Case for simple upload
 	event.Operation = "upload"
-	event.Filepath = strings.Replace(r.URL.Path, "/"+p.s3.Bucket+"/", "", 1)
+	rawFilepath := strings.Replace(r.URL.Path, "/"+p.s3.Bucket+"/", "", 1)
+	event.Filepath = helper.AnonymizeFilepath(rawFilepath, user)
+
 	event.Username = claims.Subject()
 	checksum.Type = "sha256"
 	event.Checksum = []interface{}{checksum}

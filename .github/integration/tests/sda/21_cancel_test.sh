@@ -34,7 +34,7 @@ cancel_payload=$(
     jq -r -c -n \
         --arg type cancel \
         --arg user test@dummy.org \
-        --arg filepath test_dummy.org/NA12878_20k_b37.bam.c4gh \
+        --arg filepath NA12878_20k_b37.bam.c4gh \
         --argjson encrypted_checksums "$encrypted_checksums" \
         '$ARGS.named|@base64'
 )
@@ -65,7 +65,7 @@ ingest_payload=$(
     jq -r -c -n \
         --arg type ingest \
         --arg user test@dummy.org \
-        --arg filepath test_dummy.org/NA12878_20k_b37.bam.c4gh \
+        --arg filepath NA12878_20k_b37.bam.c4gh \
         --argjson encrypted_checksums "$encrypted_checksums" \
         '$ARGS.named|@base64'
 )
