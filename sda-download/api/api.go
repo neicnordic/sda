@@ -41,6 +41,7 @@ func Setup() *http.Server {
 	router.Use(gin.LoggerWithConfig(
 		gin.LoggerConfig{
 			Formatter: func(params gin.LogFormatterParams) string {
+				// log if in debug mode, if a download was requested or if the request failed
 				if log.GetLevel() == log.DebugLevel || strings.HasPrefix(params.Path, "/s3/") || params.StatusCode >= 400 {
 					s, _ := json.Marshal(map[string]any{
 						"level":       "debug",
