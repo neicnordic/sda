@@ -670,9 +670,9 @@ func Test_CalucalateCoords(t *testing.T) {
 	assert.GreaterOrEqual(t, end, from)
 	assert.NoError(t, err)
 
-	// end should not be smaller than a header
+	// no "padding" if requesting part of the header only
 	_, end, err = calculateCoords(from, headerSize-10, "", fileDetails, "encrypted")
-	assert.GreaterOrEqual(t, end, headerSize)
+	assert.GreaterOrEqual(t, end, headerSize-10)
 	assert.NoError(t, err)
 
 	// end should not be larger than file length + header
@@ -682,7 +682,8 @@ func Test_CalucalateCoords(t *testing.T) {
 
 	// param range 0-0 should give whole file
 	start, end, err = calculateCoords(0, 0, "", fileDetails, "encrypted")
-	assert.Equal(t, end-start, fullSize)
+	assert.Equal(t, int64(0), start)
+	assert.Equal(t, int64(0), end)
 	assert.NoError(t, err)
 
 	// byte range 0-1000 should return the range size, end coord inclusive
@@ -824,7 +825,7 @@ func TestDownload_Whole_Range_Encrypted(t *testing.T) {
 	assert.NoError(t, err, "Could not make crypt4gh writer for test")
 
 	// Write some data to the file
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 40000; i++ {
 		_, err = dataWriter.Write([]byte("data"))
 		assert.NoError(t, err, "Could not write to crypt4gh writer for test")
 	}
@@ -852,7 +853,7 @@ func TestDownload_Whole_Range_Encrypted(t *testing.T) {
 	database.GetFile = func(_ string) (*database.FileDownload, error) {
 		fileDetails := &database.FileDownload{
 			ArchivePath: datafileName,
-			ArchiveSize: 0,
+			ArchiveSize: 4 * 40000,
 			Header:      headerBytes,
 		}
 
@@ -871,7 +872,7 @@ func TestDownload_Whole_Range_Encrypted(t *testing.T) {
 
 	assert.Equal(t, 200, response.StatusCode, "Unexpected status code from download")
 	// We only check
-	assert.Equal(t, []byte(strings.Repeat("data", 1000)), body, "Unexpected body from download")
+	assert.Equal(t, []byte(strings.Repeat("data", 40000)), body, "Unexpected body from download")
 
 	// Test download with specified coordinates, should return a small bit of the file
 	w = httptest.NewRecorder()
@@ -904,6 +905,47 @@ func TestDownload_Whole_Range_Encrypted(t *testing.T) {
 
 	assert.Equal(t, 200, response.StatusCode, "Unexpected status code from download")
 	assert.Equal(t, []byte("crypt4gh"), body[:8], "Unexpected body from download")
+	assert.Equal(t, 11, len(body), "Unexpected body from download")
+
+	// Test encrypted download not from the start, should work and give output
+	// that is crypt4gh encrypted
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+	c.Request = &http.Request{Method: "GET", URL: &url.URL{Path: "/mocks3/somepath", RawQuery: "filename=somepath"}}
+	c.Request.Header = http.Header{"Client-Public-Key": []string{config.Config.C4GH.PublicKeyB64},
+		"Range": []string{"bytes=4-1404"}}
+
+	c.Params = make(gin.Params, 1)
+	c.Params[0] = gin.Param{Key: "type", Value: "encrypted"}
+
+	Download(c)
+	response = w.Result()
+	defer response.Body.Close()
+	body, _ = io.ReadAll(response.Body)
+
+	assert.Equal(t, 200, response.StatusCode, "Unexpected status code from download")
+	assert.Equal(t, []byte("t4gh"), body[:4], "Unexpected body from download")
+	assert.Equal(t, 1401, len(body), "Unexpected body from download")
+
+	// Test encrypted download of a part late in the file, should work and give
+	// output that is crypt4gh encrypted (but those bits)
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+	c.Request = &http.Request{Method: "GET", URL: &url.URL{Path: "/mocks3/somepath", RawQuery: "filename=somepath&startCoordinate=70000&endCoordinate=70200"}}
+	c.Request.Header = http.Header{"Client-Public-Key": []string{config.Config.C4GH.PublicKeyB64}}
+
+	c.Params = make(gin.Params, 1)
+	c.Params[0] = gin.Param{Key: "type", Value: "encrypted"}
+
+	Download(c)
+	response = w.Result()
+	defer response.Body.Close()
+	body, _ = io.ReadAll(response.Body)
+
+	assert.Equal(t, 200, response.StatusCode, "Unexpected status code from download")
+	assert.Equal(t, 65536+28, len(body), "Unexpected body from download")
+	// TODO: is it worth it to grab a header and construct a crypt4gh stream
+	// to verify that we see expected content?
 
 	// Test encrypted download, should work even when AllowedUnencryptedDownload is false
 	w = httptest.NewRecorder()
@@ -922,6 +964,7 @@ func TestDownload_Whole_Range_Encrypted(t *testing.T) {
 
 	assert.Equal(t, 200, response.StatusCode, "Unexpected status code from download")
 	assert.Equal(t, []byte("crypt4gh"), body[:8], "Unexpected body from download")
+	assert.Equal(t, 11, len(body), "Unexpected body from download")
 
 	// Test encrypted download without passing the key, should fail
 	w = httptest.NewRecorder()

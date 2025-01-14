@@ -291,9 +291,6 @@ func Download(c *gin.Context) {
 	}
 
 	wholeFile := true
-	if start != 0 || end != 0 {
-		wholeFile = false
-	}
 
 	start, end, err = calculateCoords(start, end, c.GetHeader("Range"), fileDetails, c.Param("type"))
 	if err != nil {
@@ -301,6 +298,11 @@ func Download(c *gin.Context) {
 
 		return
 	}
+
+	if start != 0 || end != 0 {
+		wholeFile = false
+	}
+
 	if c.Param("type") != "encrypted" {
 		// set the content-length for unencrypted files
 		if start == 0 && end == 0 {
@@ -563,17 +565,38 @@ var calculateCoords = func(start, end int64, htsget_range string, fileDetails *d
 		return start, end, nil
 	}
 
-	// Adapt end coordinate to follow the crypt4gh block boundaries
-	headlength := bytes.NewReader(fileDetails.Header)
-	bodyEnd := int64(fileDetails.ArchiveSize)
-	if end > 0 {
-		var packageSize float64 = 65564 // 64KiB+28, 28 is for chacha20_ietf_poly1305
-		togo := end - start
-		bodysize := math.Max(float64(togo-headlength.Size()), 0)
-		endCoord := packageSize * math.Ceil(bodysize/packageSize)
-		bodyEnd = int64(math.Min(float64(bodyEnd), endCoord))
+	if start == 0 && end == 0 {
+		// Defaults, read the whole file
+		return 0, 0, nil
 	}
 
-	return start, headlength.Size() + bodyEnd, nil
+	// If passing coordinates through query, adapt coordinates to follow the
+	// crypt4gh block boundaries each block is 65536 data + MAC/others
+	// (currently 28 bytes since chacha20 is the only supported crypto)
+	headLength := bytes.NewReader(fileDetails.Header).Size()
 
+	if end <= headLength {
+		// Not trying to read any actual data, let them!
+		// We know from before that start is less than end
+		return start, end, nil
+	}
+
+	const packageSize float64 = 65536 + 28 // 64KiB+28, 28 is for chacha20_ietf_poly1305
+
+	var serveStart int64 = start
+	bodySize := int64(fileDetails.ArchiveSize)
+	dataRequestEndOffset := end - headLength
+	dataRequestOffset := start - headLength
+
+	blockEndCoord := packageSize * math.Ceil(float64(dataRequestEndOffset)/packageSize)
+	serveEnd := int64(math.Min(float64(bodySize), blockEndCoord)) + headLength
+
+	// Only use adjusted offset if we request data from after the header
+	// (otherwise, adding the length of the header would mean we miss out
+	// on the header itself)
+	if start > headLength {
+		serveStart = int64(packageSize*math.Floor(float64(dataRequestOffset)/packageSize)) + headLength
+	}
+
+	return serveStart, serveEnd, nil
 }
