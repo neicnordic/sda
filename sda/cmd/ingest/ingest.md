@@ -77,6 +77,7 @@ These settings control how `ingest` connects to the RabbitMQ message broker.
 - `BROKER_USER`: username to connect to RabbitMQ
 - `BROKER_PASSWORD`: password to connect to RabbitMQ
 - `BROKER_PREFETCHCOUNT`: Number of messages to pull from the message server at the time (default to `2`)
+- `BROKER_EXCHANGE`= the exchange name (i.e., `sda`)
 
 ### PostgreSQL Database settings:
 
@@ -139,3 +140,37 @@ and if `*_TYPE` is `POSIX`:
     - `error`
     - `fatal`
     - `panic`
+
+### Required settings (Example)
+
+The following configuration variables are essential for a successful setup.
+
+- `ARCHIVE_TYPE`=
+- `ARCHIVE_LOCATION`=
+- `BROKER_HOST`=
+- `BROKER_PORT`=
+- `BROKER_USER`=
+- `BROKER_PASSWORD`=
+- `BROKER_VHOST`=
+- `BROKER_QUEUE`=
+- `BROKER_EXCHANGE`=
+- `BROKER_ROUTINGKEY`=
+- `BROKER_ROUTINGERROR`=
+- `BROKER_SSL`=
+- `BROKER_VERIFYPEER`=
+- `BROKER_CACERT`=
+- `BROKER_CLIENTCERT`=
+- `BROKER_CLIENTKEY`=
+- `C4GH_PASSPHRASE`=
+- `C4GH_FILEPATH`=
+- `DB_HOST`=
+- `DB_PORT`=
+- `DB_USER`=
+- `DB_PASSWORD`=
+- `DB_DATABASE`=
+- `DB_SSLMODE`=
+- `DB_CLIENTCERT`=
+- `DB_CLIENTKEY`=
+- `INBOX_TYPE`=
+- `INBOX_LOCATION`=
+- `LOG_LEVEL`=

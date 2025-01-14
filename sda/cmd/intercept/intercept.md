@@ -49,6 +49,23 @@ These settings control how `intercept` connects to the RabbitMQ message broker.
 - `BROKER_QUEUE`: message queue to read messages from (commonly: `from_cega`)
 - `BROKER_USER`: username to connect to RabbitMQ
 - `BROKER_PASSWORD`: password to connect to RabbitMQ
+- `BROKER_VHOST`= the virtual host of the exchange (i.e., `test`)
+- `BROKER_EXCHANGE`= the exchange name (i.e., `sda`)
+
+### PostgreSQL Database settings:
+
+- `DB_HOST`: hostname for the postgresql database
+- `DB_PORT`: database port (commonly: `5432`)
+- `DB_USER`: username for the database
+- `DB_PASSWORD`: password for the database
+- `DB_DATABASE`: database name (i.e., `sda`)
+- `DB_SSLMODE`: The TLS encryption policy to use for database connections ([See Docs](https://www.postgresql.org/docs/current/libpq-ssl.html#LIBPQ-SSL-PROTECTION)), valid options are:
+    - `disable`
+    - `allow`
+    - `prefer`
+    - `require`
+    - `verify-ca`
+    - `verify-full`
 
 ### Logging settings
 
@@ -61,3 +78,23 @@ These settings control how `intercept` connects to the RabbitMQ message broker.
     - `error`
     - `fatal`
     - `panic`
+
+### Required settings (Example)
+
+The following configuration variables are essential for a successful setup.
+
+- `BROKER_HOST`=
+- `BROKER_PORT`=
+- `BROKER_USER`=
+- `BROKER_PASSWORD`=
+- `BROKER_QUEUE`=
+- `BROKER_VHOST`=
+- `BROKER_EXCHANGE`=
+- `DB_HOST`=
+- `DB_PORT`=
+- `DB_USER`=
+- `DB_PASSWORD`=
+- `DB_DATABASE`=
+- `DB_SSLMODE`=
+- `LOG_LEVEL`=
+
