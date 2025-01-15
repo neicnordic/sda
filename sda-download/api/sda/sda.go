@@ -103,7 +103,6 @@ func reencryptHeader(oldHeader []byte, reencKey string) ([]byte, error) {
 
 		return nil, err
 	}
-	log.Debugf("Response from the reencrypt service: %v", res)
 
 	return res.Header, nil
 }
@@ -383,7 +382,6 @@ func Download(c *gin.Context) {
 		}
 
 		log.Debugf("Public key from the request header = %v", reencKey)
-		log.Debugf("old c4gh file header = %v\n", fileDetails.Header)
 		newHeader, err := reencryptHeader(fileDetails.Header, reencKey)
 		if err != nil {
 			log.Errorf("Failed to reencrypt the file header, reason: %v", err)
@@ -391,7 +389,6 @@ func Download(c *gin.Context) {
 
 			return
 		}
-		log.Debugf("Reencrypted c4gh file header = %v", newHeader)
 
 		newHr := bytes.NewReader(newHeader)
 

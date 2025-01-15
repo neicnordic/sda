@@ -2,8 +2,10 @@ package api
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -31,12 +33,35 @@ func healthResponse(c *gin.Context) {
 func Setup() *http.Server {
 	// Set up routing
 	log.Info("(2/5) Registering endpoint handlers")
-
+	if log.GetLevel() != log.DebugLevel {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	router := gin.New()
-	router.Use(
-		gin.LoggerWithWriter(gin.DefaultWriter, "/health"),
-		gin.Recovery(),
-	)
+
+	router.Use(gin.LoggerWithConfig(
+		gin.LoggerConfig{
+			Formatter: func(params gin.LogFormatterParams) string {
+				// log if in debug mode, if a download was requested or if the request failed
+				if log.GetLevel() == log.DebugLevel || strings.HasPrefix(params.Path, "/s3/") || params.StatusCode >= 400 {
+					s, _ := json.Marshal(map[string]any{
+						"level":       "debug",
+						"method":      params.Method,
+						"path":        params.Path,
+						"remote_addr": params.ClientIP,
+						"status_code": params.StatusCode,
+						"time":        params.TimeStamp.Format(time.RFC3339),
+					})
+
+					return string(s) + "\n"
+				}
+
+				return ""
+			},
+
+			Output:    gin.DefaultWriter,
+			SkipPaths: []string{"/health"},
+		},
+	))
 
 	router.HandleMethodNotAllowed = true
 
